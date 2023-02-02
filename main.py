@@ -3,8 +3,7 @@ from PyQt5.QtWidgets import *
 from PyQt5.QtGui import *
 from PyQt5.QtCore import Qt
 import sqlite3
-from ui_modules import addclient
-from ui_modules import updateclient
+from ui_modules import addclient, addsupplier, updateclient, updatesupplier
 
 
 conn = sqlite3.connect("data/emanager.db")
@@ -257,7 +256,7 @@ class MainWindow(QMainWindow):
         self.newClient = addclient.AddClient()
 
     def add_new_supplier(self):
-        pass #self.newSupplier = addsupplier.AddSupplier()
+        self.newSupplier = addsupplier.AddSupplier()
 
     def display_clients(self):
         self.tblClients.setFont(QFont("Comic sans serif", 10))
