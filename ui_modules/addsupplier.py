@@ -21,14 +21,15 @@ class AddSupplier(QWidget):
 
     def set_ui(self):
         self.define_widgets()
+        print("here")
         self.define_layouts()
 
     def define_widgets(self):
         ############ widgets of top layout ###########
         self.addSupplierImg = QLabel()
         self.img = QPixmap("icons/addmember.png")
-        self.addCSupplierImg.setPixmap(self.img)
-        self.titleTxt = QLabel("Ajouter un client")
+        self.addSupplierImg.setPixmap(self.img)
+        self.titleTxt = QLabel("Ajout fournisseur")
         self.titleTxt.setStyleSheet("font-weight: bold; font-size: 16pt;")
         ############# widgets of bottom layout ########
         self.txtFirstname = QLineEdit()
@@ -42,7 +43,7 @@ class AddSupplier(QWidget):
         self.txtAddress = QLineEdit()
         self.txtFirstname.setPlaceholderText("Entrer l'adresse")
         self.btn_submit = QPushButton("Valider")
-        self.btn_submit.clicked.connect(self.insert_client)
+        self.btn_submit.clicked.connect(self.insert_supplier)
 
     def define_layouts(self):
         self.mainLayout = QVBoxLayout()

@@ -3,7 +3,7 @@ from PyQt5.QtWidgets import *
 from PyQt5.QtGui import *
 from PyQt5.QtCore import Qt
 import sqlite3
-from ui_modules import addclient, addsupplier, updateclient, updatesupplier
+from ui_modules import addclient, addsupplier, addarticle, updateclient, updatesupplier, updatearticle
 
 
 conn = sqlite3.connect("data/emanager.db")
@@ -27,6 +27,7 @@ class MainWindow(QMainWindow):
         self.layouts_and_widgets()
         self.display_clients()
         self.display_suppliers()
+        self.display_articles()
 
 
     def toolbar(self):
@@ -103,7 +104,7 @@ class MainWindow(QMainWindow):
         self.tblClients.setHorizontalHeaderItem(5, QTableWidgetItem("Adresse"))
         self.tblClients.horizontalHeader().setSectionResizeMode(1, QHeaderView.Stretch)
         self.tblClients.horizontalHeader().setSectionResizeMode(5, QHeaderView.Stretch)
-        self.tblClients.doubleClicked.connect(self.selected_product)
+        self.tblClients.doubleClicked.connect(self.selected_client)
 
         # client Main right layout widgets#
         self.btn_AddClient = QPushButton("Ajouter")
@@ -147,7 +148,7 @@ class MainWindow(QMainWindow):
 
         self.clientsStack.setLayout(self.clientMainLayout)
 
-        # Supplier Stack layout and widgets #
+        ################## Supplier Stack layout and widgets #####################
         self.supplierMainLayout = QHBoxLayout()
         self.supplierLeftMainLayout = QHBoxLayout()
         self.supplierRightMainLayout = QVBoxLayout()
@@ -168,6 +169,10 @@ class MainWindow(QMainWindow):
         self.tblSuppliers.setHorizontalHeaderItem(3, QTableWidgetItem("Email"))
         self.tblSuppliers.setHorizontalHeaderItem(4, QTableWidgetItem("Téléphone"))
         self.tblSuppliers.setHorizontalHeaderItem(5, QTableWidgetItem("Adresse"))
+        self.tblSuppliers.horizontalHeader().setSectionResizeMode(1, QHeaderView.Stretch)
+        self.tblSuppliers.horizontalHeader().setSectionResizeMode(3, QHeaderView.Stretch)
+        self.tblSuppliers.horizontalHeader().setSectionResizeMode(5, QHeaderView.Stretch)
+        self.tblSuppliers.doubleClicked.connect(self.selected_supplier)
 
         # supplier Main right layout widgets#
         self.btn_AddSupplier = QPushButton("Ajouter")
@@ -211,14 +216,17 @@ class MainWindow(QMainWindow):
 
         self.suppliersStack.setLayout(self.supplierMainLayout)
 
-        # Article Stack layout and widgets #
+        ########## Article Stack layout and widgets ##############
         self.articleMainLayout = QHBoxLayout()
         self.articleLeftMainLayout = QHBoxLayout()
         self.articleRightMainLayout = QVBoxLayout()
+        self.articleRightUpperLayout = QHBoxLayout()
         self.articleRightTopLayout = QHBoxLayout()
         self.articleRightMiddleLayout = QHBoxLayout()
-        self.articleTopGrpBx = QGroupBox()
-        self.articleMiddleGrpBx = QGroupBox()
+        self.articleUpperGrpBx = QGroupBox("Mise à jour article")
+        self.articleTopGrpBx = QGroupBox("Recherche un article")
+        self.articleMiddleGrpBx = QGroupBox("Filtre articles")
+        self.articleMiddleGrpBx.setContentsMargins(10, 50, 10, 800)
 
         self.tblArticles = QTableWidget()
         self.tblArticles.setColumnCount(6)
@@ -230,8 +238,48 @@ class MainWindow(QMainWindow):
         self.tblArticles.setHorizontalHeaderItem(4, QTableWidgetItem("Qté en stock"))
         self.tblArticles.setHorizontalHeaderItem(5, QTableWidgetItem("Prix Unitaire"))
 
+        self.tblArticles.doubleClicked.connect(self.selected_article)
+
+        # articles Main right layout widgets#
+        self.btn_AddArticle = QPushButton("Ajouter")
+        self.btn_AddArticle.clicked.connect(self.add_new_article)
+        self.btn_UpdateArticle = QPushButton("Modifier")
+        self.btn_DeleteArticle = QPushButton("Supprimer")
+
+        self.searchTxt = QLineEdit()
+        self.searchTxt.setPlaceholderText("Chercher un article")
+        self.btn_search = QPushButton("Chercher")
+
+        self.articleRightUpperLayout.addWidget(self.btn_AddArticle)
+        self.articleRightUpperLayout.addWidget(self.btn_UpdateArticle)
+        self.articleRightUpperLayout.addWidget(self.btn_DeleteArticle)
+        self.articleUpperGrpBx.setLayout(self.articleRightUpperLayout)
+
+        self.articleRightMainLayout.addWidget(self.articleUpperGrpBx)
+
+        self.articleRightTopLayout.addWidget(self.searchTxt)
+        self.articleRightTopLayout.addWidget(self.btn_search)
+        self.articleTopGrpBx.setLayout(self.articleRightTopLayout)
+
+        self.articleRightMainLayout.addWidget(self.articleTopGrpBx)
+
+        self.allArticle = QRadioButton("Tous")
+        self.activeArticle = QRadioButton("Actifs")
+        self.inactiveArticle = QRadioButton("Inactifs")
+        self.btn_liste = QPushButton("Lister")
+
+        self.articleRightMiddleLayout.addWidget(self.allArticle)
+        self.articleRightMiddleLayout.addWidget(self.activeArticle)
+        self.articleRightMiddleLayout.addWidget(self.inactiveArticle)
+        self.articleRightMiddleLayout.addWidget(self.btn_liste)
+        self.articleMiddleGrpBx.setLayout(self.clientRightMiddleLayout)
+
+        self.articleRightMainLayout.addWidget(self.articleMiddleGrpBx)
         self.articleLeftMainLayout.addWidget(self.tblArticles)
-        self.articleMainLayout.addLayout(self.articleLeftMainLayout)
+
+        self.articleMainLayout.addLayout(self.articleLeftMainLayout, 70)
+        self.articleMainLayout.addLayout(self.articleRightMainLayout, 30)
+
         self.articlesStack.setLayout(self.articleMainLayout)
 
     def clients_stack(self):
@@ -258,6 +306,9 @@ class MainWindow(QMainWindow):
     def add_new_supplier(self):
         self.newSupplier = addsupplier.AddSupplier()
 
+    def add_new_article(self):
+        self.newArticle = addarticle.AddArticle()
+
     def display_clients(self):
         self.tblClients.setFont(QFont("Comic sans serif", 10))
         for i in reversed(range(self.tblClients.rowCount())):
@@ -272,14 +323,14 @@ class MainWindow(QMainWindow):
 
         self.tblClients.setEditTriggers(QAbstractItemView.NoEditTriggers)
 
-    def selected_product(self):
+    def selected_client(self):
         global clientId
         listClientFieldsValues = []
         for i in range(0, 6):
             listClientFieldsValues.append(self.tblClients.item(self.tblClients.currentRow(), i).text())
         clientId = listClientFieldsValues[0]
         #Start and pass client id to the update form
-        self.updateClient = updateclient.UpdateProduct(clientId)
+        self.updateClient = updateclient.UpdateClient(clientId)
         #self.updateClient.txtEmail.setText(clientId)
         #self.updateClient.show()
 
@@ -296,6 +347,38 @@ class MainWindow(QMainWindow):
                 self.tblSuppliers.setItem(row_number, column_number, QTableWidgetItem(str(data)))
 
         self.tblSuppliers.setEditTriggers(QAbstractItemView.NoEditTriggers)
+
+    def selected_supplier(self):
+        global supplierId
+        listSuppliersFieldsValues = []
+        for i in range(0, 6):
+            listSuppliersFieldsValues.append(self.tblSuppliers.item(self.tblSuppliers.currentRow(), i).text())
+        supplierId = listSuppliersFieldsValues[0]
+        #Start and pass client id to the update form
+        self.updateSupplier = updatesupplier.UpdateSupplier(supplierId)
+
+    def display_articles(self):
+        self.tblArticles.setFont(QFont("Comic sans serif", 10))
+        for i in reversed(range(self.tblArticles.rowCount())):
+            self.tblArticles.removeRow(i)
+
+        query = cur.execute("SELECT id, title, unit_measure, minimum_stock, stock_quantity, unit_price FROM articles")
+        for row_data in query:
+            row_number = self.tblArticles.rowCount()
+            self.tblArticles.insertRow(row_number)
+            for column_number, data in enumerate(row_data):
+                self.tblArticles.setItem(row_number, column_number, QTableWidgetItem(str(data)))
+
+        self.tblArticles.setEditTriggers(QAbstractItemView.NoEditTriggers)
+
+    def selected_article(self):
+        global articleId
+        listArticlesFieldsValues = []
+        for i in range(0, 6):
+            listArticlesFieldsValues.append(self.tblArticles.item(self.tblArticles.currentRow(), i).text())
+        articleId = listArticlesFieldsValues[0]
+        #Start and pass client id to the update form
+        self.updateArticle = updatearticle.UpdateArticle(articleId)
 
 
 def main():

@@ -9,7 +9,7 @@ conn = sqlite3.connect("data/emanager.db")
 cur = conn.cursor()
 
 
-class UpdateProduct(QWidget):
+class UpdateClient(QWidget):
     def __init__(self, clientId):
         super().__init__()
         self.setWindowTitle("Détails données client")

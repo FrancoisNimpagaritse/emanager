@@ -28,7 +28,7 @@ class AddClient(QWidget):
         self.addClientImg = QLabel()
         self.img = QPixmap("icons/addmember.png")
         self.addClientImg.setPixmap(self.img)
-        self.titleTxt = QLabel("Ajouter un client")
+        self.titleTxt = QLabel("Ajout client")
         self.titleTxt.setStyleSheet("font-weight: bold; font-size: 16pt;")
         ############# widgets of bottom layout ########
         self.txtFirstname = QLineEdit()
@@ -52,8 +52,8 @@ class AddClient(QWidget):
         self.bottomFrame =QFrame()
         ############## Add widgets #################
         ########### Widgets of top layout #########
-        self.topLayout.addWidget(self.addClientImg)
-        self.topLayout.addWidget(self.titleTxt)
+        self.topLayout.addWidget(self.addClientImg, 30)
+        self.topLayout.addWidget(self.titleTxt, 70)
         self.topFrame.setLayout(self.topLayout)
         ########### Widgets of bottom layout #########
         self.bottomLayout.addRow(QLabel("Prénom:"), self.txtFirstname)
