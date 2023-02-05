@@ -1,9 +1,11 @@
 import sys
+
+from PyQt5 import QtCore
 from PyQt5.QtWidgets import *
 from PyQt5.QtGui import *
 from PyQt5.QtCore import Qt
 import sqlite3
-from ui_modules import addclient, addsupplier, addarticle, updateclient, updatesupplier, updatearticle
+from ui_modules import addclient, addsupplier, addarticle, updateclient, updatesupplier, updatearticle, searchArticleApprovs
 
 
 conn = sqlite3.connect("data/emanager.db")
@@ -15,8 +17,7 @@ class MainWindow(QMainWindow):
         super().__init__()
         self.setWindowTitle("eManager ~ Gestion Commerciale")
         self.setWindowIcon(QIcon("icons/icon.ico"))
-        self.setGeometry(250, 100, 2000, 1400)
-        self.setFixedSize(self.size())
+        self.showMaximized()
 
         self.set_ui()
         self.show()
@@ -28,6 +29,7 @@ class MainWindow(QMainWindow):
         self.display_clients()
         self.display_suppliers()
         self.display_articles()
+        #self.display_approvs()
 
 
     def toolbar(self):
@@ -112,9 +114,10 @@ class MainWindow(QMainWindow):
         self.btn_UpdateClient = QPushButton("Modifier")
         self.btn_DeleteClient = QPushButton("Supprimer")
 
-        self.searchTxt = QLineEdit()
-        self.searchTxt.setPlaceholderText("Chercher un client")
-        self.btn_search = QPushButton("Chercher")
+        self.searchClientTxt = QLineEdit()
+        self.searchClientTxt.setPlaceholderText("Chercher un client")
+        self.btn_searchClient = QPushButton("Chercher")
+        self.btn_searchClient.clicked.connect(self.search_clients)
 
         self.clientRightUpperLayout.addWidget(self.btn_AddClient)
         self.clientRightUpperLayout.addWidget(self.btn_UpdateClient)
@@ -123,8 +126,8 @@ class MainWindow(QMainWindow):
 
         self.clientRightMainLayout.addWidget(self.clientUpperGrpBx)
 
-        self.clientRightTopLayout.addWidget(self.searchTxt)
-        self.clientRightTopLayout.addWidget(self.btn_search)
+        self.clientRightTopLayout.addWidget(self.searchClientTxt)
+        self.clientRightTopLayout.addWidget(self.btn_searchClient)
         self.clientTopGrpBx.setLayout(self.clientRightTopLayout)
 
         self.clientRightMainLayout.addWidget(self.clientTopGrpBx)
@@ -157,7 +160,7 @@ class MainWindow(QMainWindow):
         self.supplierRightMiddleLayout = QHBoxLayout()
         self.supplierUpperGrpBx = QGroupBox("Mise à jour fournisseurs")
         self.supplierTopGrpBx = QGroupBox("Recherche fournisseur")
-        self.supplierMiddleGrpBx = QGroupBox("Filtre client")
+        self.supplierMiddleGrpBx = QGroupBox("Filtre fournisseurs")
         self.supplierMiddleGrpBx.setContentsMargins(10, 50, 10, 800)
 
         self.tblSuppliers = QTableWidget()
@@ -180,9 +183,10 @@ class MainWindow(QMainWindow):
         self.btn_UpdateSupplier = QPushButton("Modifier")
         self.btn_DeleteSupplier = QPushButton("Supprimer")
 
-        self.searchTxt = QLineEdit()
-        self.searchTxt.setPlaceholderText("Chercher un client")
-        self.btn_search = QPushButton("Chercher")
+        self.searchSupplierTxt = QLineEdit()
+        self.searchSupplierTxt.setPlaceholderText("Chercher un fournisseur")
+        self.btn_searchSupplier = QPushButton("Chercher")
+        self.btn_searchSupplier.clicked.connect(self.search_suppliers)
 
         self.supplierRightUpperLayout.addWidget(self.btn_AddSupplier)
         self.supplierRightUpperLayout.addWidget(self.btn_UpdateSupplier)
@@ -191,8 +195,8 @@ class MainWindow(QMainWindow):
 
         self.supplierRightMainLayout.addWidget(self.supplierUpperGrpBx)
 
-        self.supplierRightTopLayout.addWidget(self.searchTxt)
-        self.supplierRightTopLayout.addWidget(self.btn_search)
+        self.supplierRightTopLayout.addWidget(self.searchSupplierTxt)
+        self.supplierRightTopLayout.addWidget(self.btn_searchSupplier)
         self.supplierTopGrpBx.setLayout(self.supplierRightTopLayout)
 
         self.supplierRightMainLayout.addWidget(self.supplierTopGrpBx)
@@ -228,6 +232,7 @@ class MainWindow(QMainWindow):
         self.articleMiddleGrpBx = QGroupBox("Filtre articles")
         self.articleMiddleGrpBx.setContentsMargins(10, 50, 10, 800)
 
+        # articles Main left layout widgets#
         self.tblArticles = QTableWidget()
         self.tblArticles.setColumnCount(6)
         self.tblArticles.setColumnHidden(0, True)
@@ -246,9 +251,10 @@ class MainWindow(QMainWindow):
         self.btn_UpdateArticle = QPushButton("Modifier")
         self.btn_DeleteArticle = QPushButton("Supprimer")
 
-        self.searchTxt = QLineEdit()
-        self.searchTxt.setPlaceholderText("Chercher un article")
-        self.btn_search = QPushButton("Chercher")
+        self.searchArticleTxt = QLineEdit()
+        self.searchArticleTxt.setPlaceholderText("Chercher un article")
+        self.btn_searchArticle = QPushButton("Chercher")
+        self.btn_searchArticle.clicked.connect(self.search_articles)
 
         self.articleRightUpperLayout.addWidget(self.btn_AddArticle)
         self.articleRightUpperLayout.addWidget(self.btn_UpdateArticle)
@@ -257,10 +263,9 @@ class MainWindow(QMainWindow):
 
         self.articleRightMainLayout.addWidget(self.articleUpperGrpBx)
 
-        self.articleRightTopLayout.addWidget(self.searchTxt)
-        self.articleRightTopLayout.addWidget(self.btn_search)
+        self.articleRightTopLayout.addWidget(self.searchArticleTxt)
+        self.articleRightTopLayout.addWidget(self.btn_searchArticle)
         self.articleTopGrpBx.setLayout(self.articleRightTopLayout)
-
         self.articleRightMainLayout.addWidget(self.articleTopGrpBx)
 
         self.allArticle = QRadioButton("Tous")
@@ -282,6 +287,80 @@ class MainWindow(QMainWindow):
 
         self.articlesStack.setLayout(self.articleMainLayout)
 
+        ########## Approvs Stack layout and widgets ##############
+        self.approvsMainLayout = QVBoxLayout()
+
+        self.approvsTopMainLayout = QHBoxLayout()
+        self.approvsMiddleUpMainLayout = QHBoxLayout()
+        self.approvsMiddleMidMainLayout = QHBoxLayout()
+        self.approvsMiddleDownMainLayout = QHBoxLayout()
+        self.approvsBottomMainLayout = QHBoxLayout()
+
+        self.approvsInfosAchatGrpBx = QGroupBox("Informations facture")
+        self.frmApprovsInfosAchat = QFormLayout()
+        self.approvsInfosClientGrpBx = QGroupBox("Informations client")
+        self.frmApprovsInfosClient = QFormLayout()
+        self.approvsInfoPaymentGrpBx = QGroupBox()
+        self.frmApprovsInfosPayment = QFormLayout()
+        self.approvsOtherInfosClientGrpBx = QGroupBox()
+        self.frmApprovsOtherInfosClient = QFormLayout()
+
+        # placer bien les groupbox dans les Qformlayouts
+        # approvs Top Main layout widgets#
+        self.frmApprovsInfosAchat.addRow("Numéro :", QLineEdit())
+        self.frmApprovsInfosAchat.addRow("Date: ", QDateEdit())
+        self.frmApprovsInfosClient.addRow("Client :", QLineEdit())
+        # approvs MiddleUp Main layout widgets#
+        self.frmApprovsInfosPayment.addRow("Mode paiement :", QLineEdit())
+        self.frmApprovsInfosPayment.addRow("Date échéance :", QDateEdit())
+        self.frmApprovsOtherInfosClient.addRow("Référence :", QLineEdit())
+        # approvs MiddleMid Main layout widgets#
+        self.btn_AddApprovsArticle = QPushButton("Ajouter")
+        self.btn_AddApprovsArticle.clicked.connect(self.search_article_new_approvs)
+        self.btn_RemoveApprovsArticle = QPushButton("Retirer")
+        self.btn_Test1ApprovsArticle = QPushButton("Tester 1")
+        self.btn_Test2ApprovsArticle = QPushButton("Tester 2")
+        # approvs MiddleDown Main layout widgets#
+        self.tblApprovsDetails = QTableWidget()
+        # approvs Bottom Main layout widgets#
+        self.approvsLeftTotauxLayout = QFormLayout()
+        self.approvsRightTotauxLayout = QFormLayout()
+        self.approvsRightTotauxLayout.addRow("Total HTVA:", QLineEdit())
+        self.approvsRightTotauxLayout.addRow("Total TVA :", QLineEdit())
+        self.approvsRightTotauxLayout.addRow("Total TVAC :", QLineEdit())
+        # add widgets to groupbox  #
+
+        self.approvsInfosAchatGrpBx.setLayout(self.frmApprovsInfosAchat)
+        self.approvsTopMainLayout.addWidget(self.approvsInfosAchatGrpBx)
+
+        self.approvsInfosClientGrpBx.setLayout(self.frmApprovsInfosClient)
+        self.approvsTopMainLayout.addWidget(self.approvsInfosClientGrpBx)
+
+        self.approvsInfoPaymentGrpBx.setLayout(self.frmApprovsInfosPayment)
+        self.approvsMiddleUpMainLayout.addWidget(self.approvsInfoPaymentGrpBx)
+
+        self.approvsOtherInfosClientGrpBx.setLayout(self.frmApprovsOtherInfosClient)
+        self.approvsMiddleUpMainLayout.addWidget(self.approvsOtherInfosClientGrpBx)
+
+        self.approvsMiddleMidMainLayout.addWidget(self.btn_AddApprovsArticle)
+        self.approvsMiddleMidMainLayout.addWidget(self.btn_RemoveApprovsArticle)
+        self.approvsMiddleMidMainLayout.addWidget(self.btn_Test1ApprovsArticle)
+        self.approvsMiddleMidMainLayout.addWidget(self.btn_Test2ApprovsArticle)
+
+        self.approvsMiddleDownMainLayout.addWidget(self.tblApprovsDetails)
+
+        self.approvsBottomMainLayout.addLayout(self.approvsLeftTotauxLayout, 75)
+        self.approvsBottomMainLayout.addLayout(self.approvsRightTotauxLayout, 25)
+
+        self.approvsMainLayout.addLayout(self.approvsTopMainLayout)
+        self.approvsMainLayout.addLayout(self.approvsMiddleUpMainLayout)
+        self.approvsMainLayout.addLayout(self.approvsMiddleMidMainLayout)
+        self.approvsMainLayout.addLayout(self.approvsMiddleDownMainLayout)
+        self.approvsMainLayout.addLayout(self.approvsBottomMainLayout)
+
+        self.approvsStack.setLayout(self.approvsMainLayout)
+
+        ########## Functions ##############
     def clients_stack(self):
         self.mainWgt.setCurrentIndex(0)
 
@@ -308,6 +387,9 @@ class MainWindow(QMainWindow):
 
     def add_new_article(self):
         self.newArticle = addarticle.AddArticle()
+
+    def search_article_new_approvs(self):
+        self.searchArticleApprov = searchArticleApprovs.SearchArticleApprovs()
 
     def display_clients(self):
         self.tblClients.setFont(QFont("Comic sans serif", 10))
@@ -379,6 +461,66 @@ class MainWindow(QMainWindow):
         articleId = listArticlesFieldsValues[0]
         #Start and pass client id to the update form
         self.updateArticle = updatearticle.UpdateArticle(articleId)
+
+    def search_clients(self):
+        value = self.searchClientTxt.text()
+        if value == "":
+            QMessageBox.information(self, "Avertissement", "Veuillez renseigner une valeur de recherche !")
+        else:
+            self.searchClientTxt.setText("")
+            query = "SELECT id, firstname, lastname, email, phone FROM clients WHERE firstname LIKE ? OR lastname LIKE ? OR email LIKE ? OR phone LIKE ?"
+            results = cur.execute(query, ('%' + value + '%', '%' + value + '%', '%' + value + '%', '%' + value + '%')).fetchall()
+
+            if results == []:
+                    QMessageBox.information(self, "Avertissement !!", "Le client recherché n'existe pas !!!")
+            else:
+                for i in reversed(range(self.tblClients.rowCount())):
+                    self.tblClients.removeRow(i)
+                for row_data in results:
+                    row_number = self.tblClients.rowCount()
+                    self.tblClients.insertRow(row_number)
+                    for column_number, data in enumerate(row_data):
+                        self.tblClients.setItem(row_number, column_number, QTableWidgetItem(str(data)))
+
+    def search_suppliers(self):
+        value = self.searchSupplierTxt.text()
+        if value == "":
+            QMessageBox.information(self, "Avertissement", "Veuillez renseigner une valeur de recherche !")
+        else:
+            self.searchSupplierTxt.setText("")
+            query = "SELECT id, firstname, lastname, email, phone FROM suppliers WHERE firstname LIKE ? OR lastname LIKE ? OR email LIKE ? OR phone LIKE ?"
+            results = cur.execute(query, ('%' + value + '%', '%' + value + '%', '%' + value + '%', '%' + value + '%')).fetchall()
+
+            if results == []:
+                QMessageBox.information(self, "Avertissement !!", "Le fournisseur recherché n'existe pas !!!")
+            else:
+                for i in reversed(range(self.tblSuppliers.rowCount())):
+                    self.tblSuppliers.removeRow(i)
+                for row_data in results:
+                    row_number = self.tblSuppliers.rowCount()
+                    self.tblSuppliers.insertRow(row_number)
+                    for column_number, data in enumerate(row_data):
+                        self.tblSuppliers.setItem(row_number, column_number, QTableWidgetItem(str(data)))
+
+    def search_articles(self):
+        value = self.searchArticleTxt.text()
+        if value == "":
+            QMessageBox.information(self, "Avertissement", "Veuillez renseigner une valeur de recherche !")
+        else:
+            self.searchArticleTxt.setText("")
+            query = "SELECT id, title, unit_measure, minimum_stock, stock_quantity, unit_price FROM articles WHERE id LIKE ? OR title LIKE ?"
+            results = cur.execute(query, ('%' + value + '%', '%' + value + '%')).fetchall()
+
+            if results == []:
+                QMessageBox.information(self, "Avertissement !!", "L'article recherché n'existe pas !!!")
+            else:
+                for i in reversed(range(self.tblArticles.rowCount())):
+                    self.tblArticles.removeRow(i)
+                for row_data in results:
+                    row_number = self.tblArticles.rowCount()
+                    self.tblArticles.insertRow(row_number)
+                    for column_number, data in enumerate(row_data):
+                        self.tblArticles.setItem(row_number, column_number, QTableWidgetItem(str(data)))
 
 
 def main():

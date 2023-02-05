@@ -86,7 +86,7 @@ class UpdateSupplier(QWidget):
     def delete_supplier(self):
         supplierId = self.supplierId
 
-        answer = QMessageBox.question(self, "Attention !!!", "Etes vous sûr de vouloir supprimer le supplier ?", QMessageBox.Yes | QMessageBox.No, QMessageBox.No)
+        answer = QMessageBox.question(self, "Attention !!!", "Etes vous sûr de vouloir supprimer le fournisseur ?", QMessageBox.Yes | QMessageBox.No, QMessageBox.No)
         if answer == QMessageBox.Yes:
             try:
                 cur.execute("DELETE FROM clients WHERE id=?", (supplierId,))

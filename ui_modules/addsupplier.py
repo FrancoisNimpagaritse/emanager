@@ -21,7 +21,6 @@ class AddSupplier(QWidget):
 
     def set_ui(self):
         self.define_widgets()
-        print("here")
         self.define_layouts()
 
     def define_widgets(self):
